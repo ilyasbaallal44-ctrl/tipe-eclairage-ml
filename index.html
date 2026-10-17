@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="TIPE d'Ilyas Baallal — Optimisation énergétique d'un éclairage public adaptatif par machine learning." />
+  <title>TIPE — Éclairage public adaptatif par Machine Learning</title>
+  <style>
+    :root{
+      --bg:#08111c; --bg2:#0d1825; --panel:#101e2e; --panel2:#14263a;
+      --text:#eaf3ff; --muted:#9fb2c9; --line:#20364d;
+      --cyan:#5ee7ff; --blue:#63a8ff; --amber:#ffd66b; --green:#7ef0b1;
+      --red:#ff8a8a; --shadow:0 24px 70px rgba(0,0,0,.28);
+      --radius:22px; --max:1180px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0; color:var(--text);
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 15% -5%, rgba(99,168,255,.18), transparent 34rem),
+        radial-gradient(circle at 90% 8%, rgba(255,214,107,.11), transparent 30rem),
+        linear-gradient(180deg,#07101a 0%,#091521 52%,#071019 100%);
+      line-height:1.6;
+    }
+    a{color:inherit}
+    .progress{position:fixed;z-index:80;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--cyan),var(--amber))}
+    .nav{
+      position:sticky;top:0;z-index:70; backdrop-filter:blur(18px);
+      background:rgba(7,16,26,.76); border-bottom:1px solid rgba(255,255,255,.06)
+    }
+    .nav-inner{max-width:var(--max);margin:auto;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.02em}
+    .brand-dot{width:10px;height:10px;border-radius:50%;background:var(--amber);box-shadow:0 0 22px var(--amber)}
+    .nav-links{display:flex;gap:17px;flex-wrap:wrap}
+    .nav-links a{text-decoration:none;color:var(--muted);font-size:.9rem}
+    .nav-links a:hover{color:var(--text)}
+    .wrap{max-width:var(--max);margin:auto;padding:0 22px}
+    .hero{
+      min-height:82vh;display:grid;grid-template-columns:1.15fr .85fr;align-items:center;gap:55px;padding:84px 0 60px
+    }
+    .eyebrow{display:inline-flex;align-items:center;gap:9px;color:var(--cyan);font-weight:800;text-transform:uppercase;font-size:.75rem;letter-spacing:.14em}
+    .eyebrow:before{content:"";width:28px;height:1px;background:var(--cyan)}
+    h1{font-size:clamp(2.9rem,7vw,6.6rem);line-height:.93;letter-spacing:-.055em;margin:20px 0 25px;max-width:850px}
+    .gradient{background:linear-gradient(100deg,#fff 10%,var(--cyan) 52%,var(--amber));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .lead{font-size:1.18rem;color:#c8d5e5;max-width:760px}
+    .hero-actions{display:flex;gap:13px;flex-wrap:wrap;margin-top:30px}
+    .btn{border:1px solid var(--line);border-radius:999px;padding:12px 18px;text-decoration:none;font-weight:750;transition:.2s;display:inline-flex;align-items:center;gap:9px}
+    .btn.primary{background:var(--text);color:#06101a;border-color:var(--text)}
+    .btn:hover{transform:translateY(-2px)}
+    .chips{display:flex;gap:9px;flex-wrap:wrap;margin-top:26px}
+    .chip{padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.045);border:1px solid var(--line);font-size:.82rem;color:#c4d3e5}
+    .lamp-stage{height:500px;position:relative;border-radius:34px;overflow:hidden;background:linear-gradient(180deg,#12263e 0%,#0a1725 62%,#08111b 100%);border:1px solid var(--line);box-shadow:var(--shadow)}
+    .stars{position:absolute;inset:0;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:42px 42px;opacity:.15}
+    .moon{position:absolute;width:76px;height:76px;border-radius:50%;right:54px;top:44px;background:#f8ecbb;box-shadow:0 0 70px rgba(255,232,153,.22)}
+    .road{position:absolute;bottom:0;left:-10%;width:120%;height:150px;background:linear-gradient(180deg,#111820,#070b10);transform:perspective(350px) rotateX(54deg);transform-origin:bottom}
+    .road:after{content:"";position:absolute;top:65px;left:12%;right:12%;height:4px;background:repeating-linear-gradient(90deg,#d9d29d 0 44px,transparent 44px 85px);opacity:.6}
+    .pole{position:absolute;bottom:80px;left:48%;width:10px;height:290px;background:linear-gradient(90deg,#5c6f7f,#b4c2ce,#5f7281);border-radius:10px}
+    .arm{position:absolute;bottom:357px;left:48%;width:125px;height:10px;background:#8799a8;border-radius:10px}
+    .lamp{position:absolute;bottom:333px;left:calc(48% + 101px);width:65px;height:26px;border-radius:40% 50% 60% 50%;background:#bac9d7}
+    .glow{position:absolute;bottom:44px;left:calc(48% + 29px);width:240px;height:300px;background:linear-gradient(180deg,rgba(255,217,103,.28),rgba(255,217,103,0));clip-path:polygon(43% 0,57% 0,100% 100%,0 100%);filter:blur(3px)}
+    .signal{position:absolute;left:28px;bottom:28px;right:28px;display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+    .signal span{font-size:.72rem;color:#b8c8da;background:rgba(4,10,17,.68);border:1px solid rgba(255,255,255,.08);padding:9px;border-radius:12px;text-align:center}
+    section{padding:78px 0}
+    .section-head{display:grid;grid-template-columns:.65fr 1.35fr;gap:30px;align-items:end;margin-bottom:34px}
+    .kicker{color:var(--cyan);font-size:.78rem;text-transform:uppercase;letter-spacing:.13em;font-weight:800}
+    h2{font-size:clamp(2rem,4.2vw,3.8rem);line-height:1.03;letter-spacing:-.04em;margin:.35rem 0 0}
+    .section-head p{color:var(--muted);font-size:1.02rem;margin:0}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+    .card{background:linear-gradient(180deg,rgba(20,38,58,.86),rgba(12,25,39,.86));border:1px solid var(--line);border-radius:var(--radius);padding:25px;box-shadow:0 12px 35px rgba(0,0,0,.13)}
+    .card h3{margin:0 0 9px;font-size:1.16rem}
+    .card p{color:var(--muted);margin:.35rem 0 0}
+    .metric{grid-column:span 3}
+    .metric .value{font-size:2.45rem;font-weight:850;letter-spacing:-.04em}
+    .metric small{display:block;color:var(--muted);font-size:.8rem;margin-top:6px}
+    .problem{grid-column:span 8;padding:34px}
+    .problem blockquote{font-size:1.45rem;line-height:1.35;margin:0;color:#f3f8ff}
+    .problem b{color:var(--amber)}
+    .side-card{grid-column:span 4}
+    .formula{font-family:"SFMono-Regular",Consolas,monospace;background:#07111c;border:1px solid #1f354b;padding:16px;border-radius:14px;color:#d9f8ff;margin-top:15px;overflow:auto}
+    .flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:stretch}
+    .flow-step{position:relative;padding:24px;background:linear-gradient(180deg,#112338,#0c1a29);border:1px solid var(--line);border-radius:18px}
+    .flow-step .n{width:31px;height:31px;border-radius:9px;display:grid;place-items:center;background:rgba(94,231,255,.11);color:var(--cyan);font-weight:900}
+    .flow-step h3{margin:28px 0 6px}
+    .flow-step p{font-size:.92rem;color:var(--muted);margin:0}
+    .flow-step:not(:last-child):after{content:"→";position:absolute;right:-13px;top:50%;transform:translateY(-50%);color:var(--amber);font-weight:900;z-index:2}
+    .hardware{grid-column:span 7}
+    .hardware-diagram{min-height:320px;position:relative;margin-top:18px;border-radius:18px;background:#08131f;border:1px solid #20354a;overflow:hidden}
+    .node{position:absolute;padding:12px 14px;border-radius:13px;border:1px solid #2b4359;background:#0f2134;font-size:.87rem;font-weight:700}
+    .esp{left:41%;top:39%;padding:23px 25px;border-color:rgba(94,231,255,.5);box-shadow:0 0 35px rgba(94,231,255,.07)}
+    .bh{left:8%;top:15%}.pot1{left:7%;top:64%}.pot2{right:7%;top:15%}.pot3{right:6%;top:62%}.led{left:43%;bottom:7%;border-color:rgba(255,214,107,.55);box-shadow:0 0 30px rgba(255,214,107,.08)}
+    .wire{position:absolute;height:2px;background:#31506c;transform-origin:left center}
+    .w1{left:22%;top:29%;width:175px;transform:rotate(18deg)}
+    .w2{left:22%;top:72%;width:170px;transform:rotate(-19deg)}
+    .w3{left:59%;top:48%;width:170px;transform:rotate(-22deg)}
+    .w4{left:59%;top:49%;width:170px;transform:rotate(19deg)}
+    .w5{left:51%;top:61%;width:82px;transform:rotate(90deg)}
+    .variables{grid-column:span 5;display:grid;gap:11px}
+    .var{display:flex;justify-content:space-between;gap:20px;padding:14px 0;border-bottom:1px solid var(--line)}
+    .var:last-child{border-bottom:0}
+    .var b{font-size:.9rem}.var span{color:var(--muted);font-size:.86rem;text-align:right}
+    .protocol{counter-reset:proto}
+    .proto{display:grid;grid-template-columns:68px 1fr;gap:18px;padding:22px 0;border-bottom:1px solid var(--line)}
+    .proto:last-child{border-bottom:0}
+    .proto:before{counter-increment:proto;content:counter(proto);width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:rgba(94,231,255,.08);border:1px solid #244763;color:var(--cyan);font-weight:900}
+    .proto h3{margin:0}.proto p{margin:4px 0 0;color:var(--muted)}
+    .target-table{width:100%;border-collapse:collapse;margin-top:18px}
+    .target-table th,.target-table td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left}
+    .target-table th{color:#d7e6f7;font-size:.82rem;text-transform:uppercase;letter-spacing:.08em}
+    .target-table td{color:var(--muted)}
+    .target-table td:last-child{color:var(--amber);font-weight:800}
+    .lab{grid-column:span 6}
+    .model{grid-column:span 6}
+    .tree{margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:12px}
+    .tree-node{padding:10px 13px;border-radius:12px;border:1px solid #2d4962;background:#0a1724;font-family:monospace;font-size:.84rem}
+    .branches{display:grid;grid-template-columns:1fr 1fr;gap:35px;width:100%;position:relative}
+    .branch{text-align:center;color:var(--muted)}
+    .branch:before{content:"";display:block;width:1px;height:22px;background:#385977;margin:auto}
+    .sim{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+    .controls{display:grid;gap:18px}
+    .control label{display:flex;justify-content:space-between;font-weight:800;font-size:.9rem;margin-bottom:7px}
+    input[type=range]{width:100%;accent-color:#77dff1}
+    .sim-display{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .readout{border-radius:16px;background:#08131f;border:1px solid var(--line);padding:20px}
+    .readout b{display:block;font-size:2rem;letter-spacing:-.03em}.readout span{font-size:.78rem;color:var(--muted)}
+    .lamp-mini{grid-column:span 2;min-height:160px;display:grid;place-items:center;position:relative;overflow:hidden;background:linear-gradient(#101d2c,#071019);border:1px solid var(--line);border-radius:16px}
+    .bulb{width:52px;height:52px;background:#ffe9a8;border-radius:50%;transition:.25s}
+    .lamp-mini small{position:absolute;bottom:12px;color:var(--muted)}
+    .metrics-panel{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}
+    .metric-card{padding:22px;border-radius:18px;background:#0a1724;border:1px solid var(--line)}
+    .metric-card strong{display:block;font-size:2rem}
+    .metric-card span{font-size:.78rem;color:var(--muted)}
+    .warning{border-left:3px solid var(--amber);background:rgba(255,214,107,.06);padding:16px 18px;border-radius:0 12px 12px 0;color:#d7cda6;margin-top:16px}
+    .compare{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .compare .card{position:relative;overflow:hidden}
+    .compare .tag{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--cyan);font-weight:850}
+    .compare ul{padding-left:18px;color:var(--muted)}
+    .timeline{position:relative;padding-left:32px}
+    .timeline:before{content:"";position:absolute;left:8px;top:9px;bottom:10px;width:2px;background:linear-gradient(var(--cyan),var(--amber))}
+    .tl{position:relative;padding:0 0 27px 20px}
+    .tl:before{content:"";position:absolute;left:-30px;top:7px;width:13px;height:13px;border-radius:50%;background:#0b1724;border:3px solid var(--cyan)}
+    .tl:last-child:before{border-color:var(--amber)}
+    .tl time{color:var(--cyan);font-weight:850;font-size:.82rem}
+    .tl h3{margin:2px 0 4px}.tl p{margin:0;color:var(--muted)}
+    .code-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .tab{cursor:pointer;border:1px solid var(--line);background:#0a1724;color:#b7c8da;border-radius:999px;padding:8px 13px;font-weight:750}
+    .tab.active{background:#dceeff;color:#08111b}
+    pre{margin:0;white-space:pre;overflow:auto;background:#05101a;border:1px solid #1d3348;border-radius:17px;padding:19px;color:#c8ebff;font-size:.82rem;line-height:1.55;min-height:325px}
+    .refs{display:grid;gap:10px}
+    .ref{display:grid;grid-template-columns:40px 1fr;gap:12px;padding:15px 0;border-bottom:1px solid var(--line)}
+    .ref:last-child{border-bottom:0}
+    .ref i{font-style:normal;color:var(--cyan);font-weight:900}
+    .ref b{display:block}.ref span{color:var(--muted);font-size:.88rem}
+    .limits{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+    .limit{padding:15px;border:1px solid var(--line);border-radius:14px;background:#0a1724}
+    .limit b{display:block}.limit span{font-size:.87rem;color:var(--muted)}
+    footer{border-top:1px solid var(--line);padding:42px 0 65px;color:var(--muted)}
+    .foot{display:flex;justify-content:space-between;gap:25px;flex-wrap:wrap}
+    .reveal{opacity:0;transform:translateY(18px);transition:.6s ease}
+    .reveal.visible{opacity:1;transform:none}
+    @media(max-width:900px){
+      .nav-links{display:none}.hero{grid-template-columns:1fr;min-height:auto}.lamp-stage{height:410px}
+      .section-head{grid-template-columns:1fr}.metric{grid-column:span 6}.problem,.side-card,.hardware,.variables,.lab,.model{grid-column:span 12}
+      .flow{grid-template-columns:1fr 1fr}.flow-step:nth-child(2):after{display:none}.sim{grid-template-columns:1fr}.metrics-panel,.compare{grid-template-columns:1fr 1fr}
+    }
+    @media(max-width:600px){
+      h1{font-size:3rem}.metric{grid-column:span 12}.flow,.metrics-panel,.compare,.limits{grid-template-columns:1fr}
+      .flow-step:after{display:none}.lamp-stage{height:360px}.sim-display{grid-template-columns:1fr}.lamp-mini{grid-column:span 1}
+      .hardware-diagram{min-height:440px}.esp{left:32%;top:42%}.bh{left:6%;top:10%}.pot1{left:6%;top:75%}.pot2{right:6%;top:10%}.pot3{right:5%;top:75%}.led{left:36%;bottom:7%}.wire{display:none}
+    }
+  </style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="brand"><span class="brand-dot"></span> TIPE · Ilyas Baallal</div>
+    <div class="nav-links">
+      <a href="#probleme">Problème</a>
+      <a href="#systeme">Système</a>
+      <a href="#experience">Expérience</a>
+      <a href="#modele">Modèle ML</a>
+      <a href="#resultats">Résultats</a>
+      <a href="#dot">DOT</a>
+      <a href="#codes">Codes</a>
+    </div>
+  </div>
+</nav>
+
+<header class="wrap hero">
+  <div>
+    <div class="eyebrow">TIPE 2025–2026 · Cycles et boucles</div>
+    <h1>Éclairage public <span class="gradient">adaptatif</span> par machine learning</h1>
+    <p class="lead">Concevoir une boucle de commande capable d’adapter l’intensité d’un éclairage aux conditions réelles — luminosité ambiante, trafic, pluie et brouillard — afin de réduire la commande électrique sans descendre sous un niveau d’éclairement cible.</p>
+    <div class="hero-actions">
+      <a class="btn primary" href="#systeme">Explorer le système ↓</a>
+      <a class="btn" href="#resultats">Voir les résultats</a>
+    </div>
+    <div class="chips">
+      <span class="chip">ESP32</span><span class="chip">BH1750</span><span class="chip">PWM</span>
+      <span class="chip">Python · scikit-learn</span><span class="chip">Decision Tree</span><span class="chip">C++ / Arduino</span>
+    </div>
+  </div>
+  <div class="lamp-stage" aria-label="Illustration stylisée d'un lampadaire adaptatif">
+    <div class="stars"></div><div class="moon"></div><div class="glow"></div>
+    <div class="pole"></div><div class="arm"></div><div class="lamp"></div><div class="road"></div>
+    <div class="signal"><span>mesurer</span><span>prédire</span><span>commander</span><span>observer</span></div>
+  </div>
+</header>
+
+<main>
+<section id="probleme">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div><div class="kicker">01 · Problématique</div><h2>Pourquoi adapter l’éclairage ?</h2></div>
+      <p>Un mode fixe éclaire à pleine puissance dès qu’il fait sombre, sans tenir compte du contexte. Le TIPE transforme ce problème en une optimisation sous contrainte lumineuse.</p>
+    </div>
+
+    <div class="grid">
+      <article class="card problem reveal">
+        <blockquote>« Comment exploiter les <b>cycles temporels</b> d’un réseau d’éclairage public à l’aide du machine learning afin de <b>réduire la consommation énergétique</b> ? »</blockquote>
+      </article>
+      <article class="card side-card reveal">
+        <h3>Formulation expérimentale</h3>
+        <p>Rechercher le plus petit niveau de commande qui permet encore d’atteindre la cible lumineuse.</p>
+        <div class="formula">PWM* = min(PWM)<br>tel que E_mesuré ≥ E_cible<br>0 ≤ PWM ≤ 255</div>
+      </article>
+
+      <article class="card metric reveal"><div class="value">4</div><h3>Entrées</h3><small>lux · trafic · pluie · brouillard</small></article>
+      <article class="card metric reveal"><div class="value">1</div><h3>Sortie</h3><small>commande PWM prédite</small></article>
+      <article class="card metric reveal"><div class="value">5</div><h3>Profondeur</h3><small>max_depth de l’arbre</small></article>
+      <article class="card metric reveal"><div class="value">8 bits</div><h3>PWM</h3><small>commande de 0 à 255</small></article>
+    </div>
+  </div>
+</section>
+
+<section id="systeme">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div><div class="kicker">02 · Cycles & boucles</div><h2>Une boucle mesure → décision → action</h2></div>
+      <p>Le cycle journalier fait varier la lumière naturelle. À l’intérieur de ce cycle, la maquette exécute continuellement une boucle de commande.</p>
+    </div>
+
+    <div class="flow reveal">
+      <div class="flow-step"><div class="n">1</div><h3>Mesure</h3><p>Le BH1750 mesure la luminosité ambiante en lux.</p></div>
+      <div class="flow-step"><div class="n">2</div><h3>Prédiction</h3><p>L’arbre de décision transforme les quatre entrées en PWM.</p></div>
+      <div class="flow-step"><div class="n">3</div><h3>Action</h3><p>L’ESP32 applique la commande PWM à la LED.</p></div>
+      <div class="flow-step"><div class="n">4</div><h3>Observation</h3><p>Le nouvel état est observé et la boucle recommence.</p></div>
+    </div>
+
+    <div class="grid" style="margin-top:18px">
+      <article class="card hardware reveal">
+        <h3>Architecture de la maquette</h3>
+        <p>Une LED représente un lampadaire. Les variables météo et de trafic sont imposées par potentiomètres afin d’obtenir des scénarios reproductibles.</p>
+        <div class="hardware-diagram">
+          <div class="wire w1"></div><div class="wire w2"></div><div class="wire w3"></div><div class="wire w4"></div><div class="wire w5"></div>
+          <div class="node bh">BH1750<br><small>lux ambiant</small></div>
+          <div class="node pot1">Potentiomètre<br><small>trafic</small></div>
+          <div class="node esp">ESP32<br><small>acquisition + calcul</small></div>
+          <div class="node pot2">Potentiomètre<br><small>pluie</small></div>
+          <div class="node pot3">Potentiomètre<br><small>brouillard</small></div>
+          <div class="node led">LED<br><small>PWM 0–255</small></div>
+        </div>
+      </article>
+      <article class="card variables reveal">
+        <h3>Variables du modèle</h3>
+        <div class="var"><b>Luminosité</b><span>mesure physique BH1750</span></div>
+        <div class="var"><b>Trafic</b><span>scénario 0–100 %</span></div>
+        <div class="var"><b>Pluie</b><span>scénario 0–100 %</span></div>
+        <div class="var"><b>Brouillard</b><span>scénario 0–100 %</span></div>
+        <div class="var"><b>PWM</b><span>sortie 0–255</span></div>
+        <div class="var"><b>Liaison série</b><span>export des acquisitions</span></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="experience">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div><div class="kicker">03 · Expérience</div><h2>Construire le dataset par mesure</h2></div>
+      <p>Le label n’est pas choisi arbitrairement : pour chaque situation, l’ESP32 cherche expérimentalement le premier niveau de PWM suffisant pour atteindre la cible.</p>
+    </div>
+
+    <div class="grid">
+      <article class="card lab reveal">
+        <div class="protocol">
+          <div class="proto"><div><h3>Mesurer l’ambiance</h3><p>LED éteinte, moyenne de plusieurs mesures du BH1750.</p></div></div>
+          <div class="proto"><div><h3>Lire les scénarios</h3><p>Conversion des trois entrées analogiques en pourcentages.</p></div></div>
+          <div class="proto"><div><h3>Calculer E<sub>cible</sub></h3><p>La cible augmente avec le trafic, la pluie et le brouillard.</p></div></div>
+          <div class="proto"><div><h3>Balayer la PWM</h3><p>Tests successifs : 0, 30, 60, 90, …, 255.</p></div></div>
+          <div class="proto"><div><h3>Enregistrer le label</h3><p>Le premier PWM satisfaisant devient <code>pwm_optimal</code>.</p></div></div>
+        </div>
+      </article>
+      <article class="card lab reveal">
+        <h3>Construction de la cible lumineuse</h3>
+        <p>Base : <b>80 lux</b>. Les conditions dégradées ajoutent une marge.</p>
+        <table class="target-table">
+          <thead><tr><th>Variable</th><th>40–70 %</th><th>&gt; 70 %</th></tr></thead>
+          <tbody>
+            <tr><td>Trafic</td><td>+20 lux</td><td>+40 lux</td></tr>
+            <tr><td>Pluie</td><td>+15 lux</td><td>+30 lux</td></tr>
+            <tr><td>Brouillard</td><td>+25 lux</td><td>+50 lux</td></tr>
+          </tbody>
+        </table>
+        <div class="formula">E_cible = 80 + Δtrafic + Δpluie + Δbrouillard</div>
+        <p style="margin-top:16px">Une ligne du dataset contient donc : <b>lux ambiant, trafic, pluie, brouillard → PWM optimal</b>.</p>
+      </article>
+    </div>
+
+    <div class="card reveal" style="margin-top:18px">
+      <h3>Explorateur du protocole</h3>
+      <p>Fais varier les scénarios. Le calcul ci-dessous reproduit exactement la règle utilisée pour construire <b>E<sub>cible</sub></b>. Le « mode fixe » reproduit la référence : PWM 255 si lux &lt; 300, sinon 0.</p>
+      <div class="sim" style="margin-top:22px">
+        <div class="controls">
+          <div class="control"><label>Luminosité ambiante <span><b id="luxVal">80</b> lux</span></label><input id="lux" type="range" min="0" max="400" value="80"></div>
+          <div class="control"><label>Trafic <span><b id="trafficVal">50</b> %</span></label><input id="traffic" type="range" min="0" max="100" value="50"></div>
+          <div class="control"><label>Pluie <span><b id="rainVal">20</b> %</span></label><input id="rain" type="range" min="0" max="100" value="20"></div>
+          <div class="control"><label>Brouillard <span><b id="fogVal">30</b> %</span></label><input id="fog" type="range" min="0" max="100" value="30"></div>
+        </div>
+        <div class="sim-display">
+          <div class="readout"><b id="target">100</b><span>lux · cible expérimentale</span></div>
+          <div class="readout"><b id="fixed">255</b><span>PWM · mode fixe de référence</span></div>
+          <div class="lamp-mini"><div class="bulb" id="bulb"></div><small id="status">éclairage fixe actif</small></div>
+        </div>
+      </div>
+      <div class="warning">L’explorateur ne remplace pas l’arbre entraîné : le PWM ML exact dépend des seuils appris dans le modèle exporté.</div>
+    </div>
+  </div>
+</section>
+
+<section id="modele">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div><div class="kicker">04 · Machine Learning</div><h2>Un arbre volontairement simple et transférable</h2></div>
+      <p>Le choix d’un arbre de décision de régression privilégie l’interprétabilité : l’entraînement se fait sur ordinateur, puis ses règles deviennent des <code>if/else</code> directement exécutables sur ESP32.</p>
+    </div>
+
+    <div class="grid">
+      <article class="card model reveal">
+        <h3>Apprentissage supervisé</h3>
+        <p><b>X</b> contient les quatre variables d’entrée. <b>y</b> est le PWM optimal trouvé expérimentalement.</p>
+        <div class="formula">DecisionTreeRegressor(max_depth=5)<br>train_test_split(test_size=0.25, random_state=42)</div>
+        <p style="margin-top:14px">75 % des lignes servent à apprendre les seuils ; 25 % restent invisibles pendant l’entraînement pour évaluer la généralisation.</p>
+      </article>
+
+      <article class="card model reveal">
+        <h3>Exemple de parcours dans l’arbre</h3>
+        <div class="tree">
+          <div class="tree-node">lux ≤ 96,81 ?</div>
+          <div class="branches"><div class="branch">oui<div class="tree-node">lux ≤ 54,06 ?</div></div><div class="branch">non<div class="tree-node">autre sous-arbre</div></div></div>
+          <div class="branches"><div class="branch">oui<div class="tree-node">brouillard ≤ 61,53 ?</div></div><div class="branch">non<div class="tree-node">autre sous-arbre</div></div></div>
+        </div>
+        <p>Chaque observation suit un seul chemin jusqu’à une feuille. Une feuille renvoie la moyenne des labels d’apprentissage qu’elle contient.</p>
+      </article>
+    </div>
+
+    <div class="flow reveal" style="margin-top:18px;grid-template-columns:repeat(3,1fr)">
+      <div class="flow-step"><div class="n">1</div><h3>Python</h3><p>CSV → entraînement → MAE/R² → export des règles.</p></div>
+      <div class="flow-step"><div class="n">2</div><h3>Export</h3><p>Seuils, branches et feuilles traduits en conditions C++.</p></div>
+      <div class="flow-step"><div class="n">3</div><h3>ESP32</h3><p>Lecture capteurs → <code>predictPWM()</code> → <code>ledcWrite()</code>.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="resultats">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div><div class="kicker">05 · Évaluation</div><h2>Comparer précision, économie et sûreté</h2></div>
+      <p>Trois stratégies sont distinguées : éclairage fixe, règles manuelles et arbre appris. Les indicateurs mesurent à la fois la qualité de prédiction et le respect de la cible lumineuse.</p>
+    </div>
+
+    <div class="compare reveal">
+      <article class="card"><div class="tag">Référence</div><h3>Mode fixe</h3><ul><li>PWM = 255 si lux &lt; 300</li><li>aucun scénario contextuel</li><li>commande relative maximale</li></ul></article>
+      <article class="card"><div class="tag">Baseline adaptative</div><h3>Règles manuelles</h3><ul><li>seuils choisis à la main</li><li>adaptatif et lisible</li><li>réglage empirique</li></ul></article>
+      <article class="card"><div class="tag">Approche retenue</div><h3>Arbre appris</h3><ul><li>seuils issus du dataset</li><li>évaluable sur test</li><li>transférable sur microcontrôleur</li></ul></article>
+    </div>
+
+    <div class="metrics-panel reveal">
+      <div class="metric-card"><strong>2,92</strong><span>MAE · erreur moyenne en PWM</span></div>
+      <div class="metric-card"><strong>0,931</strong><span>R² · qualité de prédiction</span></div>
+      <div class="metric-card"><strong>69,0 %</strong><span>gain énergétique relatif estimé</span></div>
+      <div class="metric-card"><strong>93,5 %</strong><span>sûreté · cible lumineuse atteinte</span></div>
+    </div>
+
+    <div class="card reveal" style="margin-top:18px">
+      <h3>Comment l’énergie est-elle estimée ?</h3>
+      <div class="formula">E_rel = Σ (PWM / 255) · Δt<br><br>Gain = 100 × (E_fixe − E_ML) / E_fixe</div>
+      <div class="warning"><b>Point important :</b> le gain de 69 % est une estimation relative fondée sur la commande PWM. Il ne constitue pas encore une mesure directe de la puissance électrique absorbée. La validation suivante consiste à intégrer un INA219 et un étage MOSFET pour mesurer tension, courant et puissance.</div>
+    </div>
+  </div>
+</section>
+
+<section id="dot">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div><div class="kicker">06 · Déroulé opérationnel</div><h2>Le cheminement réel du TIPE</h2></div>
+      <p>La démarche n’a pas été linéaire : le sujet a été recadré, le protocole adapté aux contraintes de temps et plusieurs difficultés matérielles ont orienté la suite du travail.</p>
+    </div>
+
+    <div class="card timeline reveal">
+      <div class="tl"><time>Août 2025</time><h3>Recherche documentaire</h3><p>Lecture d’articles sur l’éclairage adaptatif et les capteurs de visibilité. Remplacement de variables météo trop générales par des grandeurs exploitables sur maquette.</p></div>
+      <div class="tl"><time>Septembre 2025</time><h3>Recentrage de la problématique</h3><p>Après avoir étudié maintenance prédictive et détection d’anomalies, le travail est recentré sur l’optimisation énergétique.</p></div>
+      <div class="tl"><time>Novembre 2025</time><h3>Premier protocole</h3><p>LED commandée en PWM, BH1750 pour l’éclairement et INA219 envisagé pour la puissance. Définition du PWM minimal sous contrainte d’éclairement.</p></div>
+      <div class="tl"><time>Janvier 2026</time><h3>Étude de faisabilité</h3><p>L’acquisition exhaustive de données réelles étant trop longue, décision de combiner mesures réelles et données simulées.</p></div>
+      <div class="tl"><time>Février–mars 2026</time><h3>Modélisation et apprentissage</h3><p>Construction d’un modèle reliant environnement, commande PWM, éclairement et puissance ; entraînement d’un modèle supervisé.</p></div>
+      <div class="tl"><time>Avril 2026</time><h3>Contraintes matérielles</h3><p>Difficultés d’approvisionnement en LED, résistances et MOSFET ; poursuite de la démarche par simulation et préparation du câblage.</p></div>
+      <div class="tl"><time>Mai–juin 2026</time><h3>Mise en route de l’ESP32</h3><p>Installation du pilote, téléversements, tests des potentiomètres et diagnostic des capteurs I²C.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div><div class="kicker">07 · Limites & perspectives</div><h2>Ce qui reste à consolider</h2></div>
+      <p>La chaîne complète fonctionne. La priorité n’est pas d’ajouter un modèle plus complexe, mais d’améliorer la validation quantitative et la reproductibilité.</p>
+    </div>
+    <div class="limits reveal">
+      <div class="limit"><b>Une seule LED sur breadboard</b><span>→ passer à une charge plus représentative avec MOSFET.</span></div>
+      <div class="limit"><b>Capteur proche de la LED</b><span>→ fixer la géométrie et séparer lumière ambiante / lumière produite.</span></div>
+      <div class="limit"><b>Dataset réel ou semi-réel</b><span>→ répéter les acquisitions et couvrir davantage de scénarios.</span></div>
+      <div class="limit"><b>Énergie déduite de la PWM</b><span>→ mesurer directement courant, tension et puissance avec INA219.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="codes">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div><div class="kicker">08 · Codes</div><h2>Du dataset au microcontrôleur</h2></div>
+      <p>Les annexes du TIPE regroupent l’entraînement Python, la génération expérimentale du dataset, la version ESP32 avec modèle, une baseline sans ML et les tests unitaires des composants.</p>
+    </div>
+    <div class="card reveal">
+      <div class="code-tabs">
+        <button class="tab active" data-code="train">A1 · Entraînement</button>
+        <button class="tab" data-code="dataset">A3 · Dataset</button>
+        <button class="tab" data-code="baseline">A4 · Sans ML</button>
+        <button class="tab" data-code="tests">A5 · Tests</button>
+      </div>
+      <pre><code id="codeBox"></code></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div><div class="kicker">09 · Bibliographie</div><h2>Travaux qui ont structuré l’étude</h2></div>
+      <p>La bibliographie couvre l’éclairage adaptatif, la détection d’occupation, les systèmes urbains intelligents et l’emploi du machine learning pour la simulation ou la commande énergétique.</p>
+    </div>
+    <div class="card refs reveal">
+      <div class="ref"><i>[1]</i><div><b>H. Ladhiya, R. Malik — A Daylight Adaptive Energy Optimization Technique for Indoor Lighting System Using Machine Learning</b><span>APSIT, 2025 · doi: 10.1109/APSIT63993.2025.11086124</span></div></div>
+      <div class="ref"><i>[2]</i><div><b>I. C. Silva et al. — Analysis and Improvement of Machine Learning Models for Detecting Street Lighting Lamps</b><span>Learning and Nonlinear Models, 21(2), 2023 · doi: 10.21528/lnlm-vol21-no2-art2</span></div></div>
+      <div class="ref"><i>[3]</i><div><b>H. Wang et al. — Design of Library Intelligent Lighting System Based on Deep Learning</b><span>Scientific Reports, 15, 2025 · doi: 10.1038/s41598-025-96690-4</span></div></div>
+      <div class="ref"><i>[4]</i><div><b>N. Lachgar et al. — Intelligent Automatic Lighting System Based on Deep Learning and Computer Vision</b><span>Euro-Mediterranean Journal for Environmental Integration, 2025 · doi: 10.1007/s41207-025-00817-y</span></div></div>
+      <div class="ref"><i>[5]</i><div><b>S. Alam et al. — Intelligent Streetlight Control System Using Machine Learning Algorithms for Enhanced Energy Optimization in Smart Cities</b><span>Journal of Ecohumanism, 4(4), 2025 · doi: 10.62754/joe.v4i4.6761</span></div></div>
+      <div class="ref"><i>[6]</i><div><b>V. S. Costa, W. F. da S. Santos — Street Lighting Simulation Based on Extreme Learning Machine</b><span>ICISNA'23, London, 2023</span></div></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div><b style="color:#eaf3ff">Ilyas Baallal</b><br>TIPE · Cycles et boucles · 2025–2026</div>
+    <div>Machine Learning · Systèmes embarqués · Optimisation énergétique</div>
+  </div>
+</footer>
+
+<script>
+  // Reading progress
+  const progress = document.getElementById('progress');
+  addEventListener('scroll', () => {
+    const h = document.documentElement.scrollHeight - innerHeight;
+    progress.style.width = (scrollY / h * 100) + '%';
+  });
+
+  // Reveal animation
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, {threshold:.08});
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Protocol explorer
+  const ids = ['lux','traffic','rain','fog'];
+  const $ = id => document.getElementById(id);
+  function delta(v, mid, high){
+    return v > 70 ? high : (v > 40 ? mid : 0);
+  }
+  function updateSim(){
+    const lux=+$('lux').value, traffic=+$('traffic').value, rain=+$('rain').value, fog=+$('fog').value;
+    $('luxVal').textContent=lux; $('trafficVal').textContent=traffic; $('rainVal').textContent=rain; $('fogVal').textContent=fog;
+    const target = 80 + delta(traffic,20,40) + delta(rain,15,30) + delta(fog,25,50);
+    const fixed = lux < 300 ? 255 : 0;
+    $('target').textContent=target; $('fixed').textContent=fixed;
+    const bulb=$('bulb');
+    const intensity=fixed/255;
+    bulb.style.opacity = .28 + .72*intensity;
+    bulb.style.boxShadow = fixed ? '0 0 30px rgba(255,225,133,.8), 0 0 90px rgba(255,211,95,.35)' : 'none';
+    $('status').textContent = fixed ? 'éclairage fixe actif' : 'éclairage fixe éteint';
+  }
+  ids.forEach(id => $(id).addEventListener('input',updateSim)); updateSim();
+
+  // Code tabs
+  const codes = {
+train:`import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeRegressor, export_text
+from sklearn.metrics import mean_absolute_error, r2_score
+
+df = pd.read_csv("dataset_tipe_led_ml_1200_lignes.csv")
+
+X = df[[
+    "lux_ambiante_BH1750",
+    "trafic_pct",
+    "pluie_pct",
+    "brouillard_pct"
+]]
+y = df["pwm_optimal"]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=42
+)
+
+model = DecisionTreeRegressor(max_depth=5, random_state=42)
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+print("MAE =", mean_absolute_error(y_test, y_pred))
+print("R² =", r2_score(y_test, y_pred))
+
+rules = export_text(model, feature_names=list(X.columns))
+with open("regles_modele_tipe.txt", "w", encoding="utf-8") as f:
+    f.write(rules)`,
+dataset:`float calculEcible(float trafic, float pluie, float brouillard) {
+  float E_cible = 80.0;
+
+  if (trafic > 70) E_cible += 40;
+  else if (trafic > 40) E_cible += 20;
+
+  if (pluie > 70) E_cible += 30;
+  else if (pluie > 40) E_cible += 15;
+
+  if (brouillard > 70) E_cible += 50;
+  else if (brouillard > 40) E_cible += 25;
+
+  return E_cible;
+}
+
+int chercherPWMOptimal(float E_cible) {
+  int pwmTests[] = {0,30,60,90,120,150,180,210,240,255};
+  for (int pwm : pwmTests) {
+    ledcWrite(pinLED, pwm);
+    delay(700);
+    if (moyenneLux(5) >= E_cible) return pwm;
+  }
+  return 255;
+}`,
+baseline:`int pwmFixe(float lux) {
+  if (lux < 300) return 255;
+  return 0;
+}
+
+int pwmRegleManuelle(float lux, float trafic,
+                     float pluie, float brouillard) {
+  int pwm = 0;
+  if (lux > 300) return 0;
+
+  if (lux < 30) pwm = 220;
+  else if (lux < 80) pwm = 180;
+  else if (lux < 150) pwm = 130;
+  else pwm = 70;
+
+  if (trafic > 70) pwm += 30;
+  else if (trafic > 40) pwm += 15;
+
+  if (pluie > 70) pwm += 40;
+  else if (pluie > 40) pwm += 20;
+
+  if (brouillard > 70) pwm += 50;
+  else if (brouillard > 40) pwm += 25;
+
+  return constrain(pwm, 0, 255);
+}`,
+tests:`// A5.1 — Scanner I2C
+Wire.begin(21, 22);
+for (byte address = 1; address < 127; address++) {
+  Wire.beginTransmission(address);
+  if (Wire.endTransmission() == 0) {
+    Serial.println(address, HEX);
+  }
+}
+
+// BH1750 attendu : 0x23
+// INA219 attendu : 0x40
+
+// A5.3 — Potentiomètres
+float trafic = 100.0 * analogRead(34) / 4095.0;
+float pluie = 100.0 * analogRead(35) / 4095.0;
+float brouillard = 100.0 * analogRead(32) / 4095.0;
+
+// A5.4 — Mesure électrique envisagée
+float current_mA = ina219.getCurrent_mA();
+float power_mW = ina219.getPower_mW();`
+  };
+  const codeBox=$('codeBox');
+  codeBox.textContent=codes.train;
+  document.querySelectorAll('.tab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      btn.classList.add('active');
+      codeBox.textContent=codes[btn.dataset.code];
+    });
+  });
+</script>
+</body>
+</html>
